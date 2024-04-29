@@ -1,6 +1,7 @@
-2,6,7,3,4,0
-LOAD(i0, r0)
-NEXT(i0, r1)
-LOAD(r1, o0)
-LOAD(r1,r1)
-LOAD(i2,r2)
+1,0,1,0,0,0,1
+ADD(1,0,r0)
+ADD(i1,0,r1)
+ADD(r0,1,r0)
+JE(r0,i0,2)
+JUMP(-3)
+LOAD(r0,o0)
