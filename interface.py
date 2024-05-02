@@ -2,15 +2,19 @@ import RAM as rm
 import tkinter as tk
 import os
 
+
 ''' Passage du Makefile au fichier sous format Python '''
 def readfile(argument):
     try :
-        instructs = rm.makefile(argument+".txt") 
-        affiche_instruction(instructs)
+        instructs = rm.makefile(argument+".txt")
+        ram = rm.Ram(instructs)
+        
+        return ram
+    
     except FileNotFoundError:
         print(f"Fichier '{argument}' introuvable.")
         return {}
-
+ 
 def update_ram_display(ram):
     instructions_text.delete(1.0, tk.END)
     for index, (instruction, args) in ram.instructs.items():
@@ -26,7 +30,7 @@ def update_ram_display(ram):
     output_text.delete(1.0, tk.END)
     output_text.insert(tk.END, ", ".join(str(value) for value in ram.output))
 
-def affiche_instruction (dict):
+def affiche_instruction (dict):     
     for key, val in dict.items() :
         if key != 0 :
             instructions_text.insert(float(key)+1,val+"\n")
@@ -54,7 +58,6 @@ def execute_instruction(ram):
         status_text.config(text=f"Erreur inattendue : {e}")
 
 def execute_step_by_step(ram):
-    execute_instruction(ram)
     if ram.pos <= len(ram.instructions):
         step_by_step_button.config(text="Continuer")
     else:

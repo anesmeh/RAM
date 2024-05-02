@@ -1,5 +1,5 @@
 # a faire : si il n' a pas de input mettre erreur 
-
+import interface as it
 import argparse
 
 ''' Passage du Makefile au fichier sous format Python '''
@@ -162,17 +162,7 @@ class Ram:
             print("Instruction en cours... " + self.instructs[self.pos])
             self.lecture(self.instructs[self.pos])
         print("*********************************")
-    def step(self):
-        self.lecture(self.instructs[self.pos])
     
-    def steps(self):
-        print("*********************************")
-        print("Execution des instructions de la Ram...")
-        while self.pos <= len(self.instructs.keys()):
-            print("Instruction en cours... " + self.instructs[self.pos])
-            self.step()
-            print(self)
-            
     def ADD(self, arg):
 
         if len(arg) < 3:
@@ -326,4 +316,5 @@ if __name__ == "__main__":
     print('jj', r.input)
     r.execute()
     print('output :', r.output)
+    it.window.mainloop()
     
