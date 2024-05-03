@@ -4,9 +4,7 @@ class Ram:
     def __init__(self, instructs):
         self.pos = 1
         self.input = [len(instructs[0].split(','))]
-        input_list = []
-        for element in instructs[0].split(','):
-            input_list.append(int(element))
+        input_list = [int(element) for element in instructs[0].split(',')]
         self.input += input_list
         self.register = []
         self.output = []
@@ -16,99 +14,49 @@ class Ram:
 
     def __str__(self):
         res = "*********************************" + "\n"
-        res += "Position du pointeur : " + str(self.pos+1) + "\n"
-        res += "Input : " + str(self.input) + "\n"
-        res += "Registre : " + str(self.register) + "\n"
-        res += "Output : " + str(self.output) + "\n"
-        # for key, value in self.instructs.items():
-        #     res +=  "Instruction " + str(key) + " : " + value + "\n"
+        res += f"Position du pointeur : {str(self.pos + 1)}" + "\n"
+        res += f"Input : {str(self.input)}" + "\n"
+        res += f"Registre : {str(self.register)}" + "\n"
+        res += f"Output : {str(self.output)}" + "\n"
         res += "*********************************"
         return res
 
     def recuperer_element(self, element):
+        # Element est un int
         if type(element) == int:
             return element
-        if type(element) == str and element.startswith("r"):
+        elif type(element) == str:
+            prefix_dict = { 'r': self.register, 'i': self.input, 'o': self.output, 
+                            'R': self.register, 'I': self.input, 'O': self.output}
             try:
-                position = int(element[1:])
-                return self.register[position]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("i"):
-            try:
-                position = int(element[1:])
-                return self.input[position]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("o"):
-            try:
-                position = int(element[1:])
-                return self.output[position]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("R@i"):
-            try:
-                position = int(element[3:])
-                return self.register[self.input[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("I@i"):
-            try:
-                position = int(element[3:])
-                return self.input[self.input[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("O@i"):
-            try:
-                position = int(element[3:])
-                return self.output[self.input[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("R@r"):
-            try:
-                position = int(element[3:])
-                return self.register[self.register[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("I@r"):
-            try:
-                position = int(element[3:])
-                return self.input[self.register[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("O@r"):
-            try:
-                position = int(element[3:])
-                return self.output[self.register[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("R@o"):
-            try:
-                position = int(element[3:])
-                return self.register[self.output[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("I@o"):
-            try:
-                position = int(element[3:])
-                return self.input[self.output[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
-        if type(element) == str and element.startswith("O@o"):
-            try:
-                position = int(element[3:])
-                return self.output[self.output[position]]
-            except (ValueError, IndexError):
-                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+                # Element est reference (I@r2)
+                if '@' in element:
+                    prefix, idx_prefix = element.split('@')
+                    position = int(element.split('@')[1][1:])
+                    # self.registre_IRO[self.registre_IRO[position]]
+                    return prefix_dict[prefix[0]][prefix_dict[idx_prefix[0]][position]]
+                else:
+                    # Element est un registre
+                    prefix = element[0]
+                    position = int(element[1:])
+                    return prefix_dict[prefix][position]
+            except (ValueError, IndexError) as e:
+                raise ValueError(
+                    f"Impossible de récupérer l'élément à la position {position} de la liste."
+                ) from e
         else:
             raise TypeError(f"Le type de l'élément {element} n'est pas pris en charge.")
 
+
     def lecture(self, instruction):
         commands = ("ADD", "SUB", "DIV", "MULT", "JUMP", "JE", "JL", "LOAD")
-        commands_starts, commands_end = tuple([element + "(" for element in commands]), ")"
+        commands_starts, commands_end = (
+            tuple(f"{element}(" for element in commands),
+            ")",
+        )
         if instruction.startswith(commands_starts) and instruction.endswith(commands_end):
             buffer = instruction.split("(")[1].replace(")", "").split(',')
-            registre = list()
+            registre = []
             for element in buffer:
                 try: 
                     int(element)
@@ -125,13 +73,22 @@ class Ram:
     def CHECK_ARITH_ERROR(self, arg):
         # Exemple: ADD(a) avec a un int ou registre
         if len(arg) < 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il manque un/des argument(s): " + self.instructs[self.pos] + ".")
+            raise IndexError(
+                f"La ligne {str(self.pos + 1)} contient une instruction invalide, il manque un/des argument(s): {self.instructs[self.pos]}."
+            )
         # Exemple: ADD(a,b,c,d) avec a,b,c et d des ints ou registres
         if len(arg) > 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il y a trop d'arguments: " + self.instructs[self.pos] + ".")
+            raise IndexError(
+                f"La ligne {str(self.pos + 1)} contient une instruction invalide, il y a trop d'arguments: {self.instructs[self.pos]}."
+            )
         # Exemple: ADD(a,b,4) avec a et b des ints ou registres
         if type(arg[2]) == int:
-            raise TypeError(str(arg[0]) + " et " + str(arg[1]) + "sont stockées dans l'int " + str(arg[2]) + ".")
+            raise TypeError(
+                f"{str(arg[0])} et {str(arg[1])}"
+                + "sont stockées dans l'int "
+                + str(arg[2])
+                + "."
+            )
         if type(arg[2]) == str and arg[2][0] == "i" :
             raise TypeError ("vous ne pouvez pas stocker dans le input")
         if type(arg[0]) == str and arg[0][0] == "o" :
@@ -220,7 +177,7 @@ class Ram:
     
     def steps(self):
         while self.pos <= len(self.instructs.keys()):
-            print("Instruction en cours... " + self.instructs[self.pos])
+            print(f"Instruction en cours... {self.instructs[self.pos]}")
             self.step()
             print(self)
             

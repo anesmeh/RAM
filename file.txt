@@ -1,3 +1,10 @@
-3,31,46,16
-ADD(2,0,r2)
-LOAD(I@r2,o0)
+31
+LOAD(i1,r0)
+JE(r0,3,6)
+JE(r0,0,3)
+DIV(r0,10,r0)
+JUMP(2)
+LOAD(10,r0)
+JUMP(2)
+LOAD(0,o0)
+JUMP(2)
