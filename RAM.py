@@ -21,7 +21,7 @@ class Ram:
         res += "*********************************"
         return res
 
-    def recuperer_element(self, element):
+    def _recuperer_element(self, element):
         # Element est un int
         if type(element) == int:
             return element
@@ -70,7 +70,7 @@ class Ram:
     def step(self):
         self.lecture(self.instructs[self.pos])
 
-    def CHECK_ARITH_ERROR(self, arg):
+    def _check_arth_error(self, arg):
         # Exemple: ADD(a) avec a un int ou registre
         if len(arg) < 3:
             raise IndexError(
@@ -96,7 +96,7 @@ class Ram:
         if type(arg[1]) == str and arg[1][0] == "o" :
             raise TypeError ("vous ne pouvez pas recuperer de l'output")
         
-    def CHECK_LOAD_ERROR(self, arg):
+    def _check_load_error(self, arg):
         if type(arg[1]) == str and arg[1][0] == "i" :
             raise TypeError ("vous ne pouvez pas stocker dans le input")
         if type(arg[0]) == str and arg[0][0] == "o" :
@@ -105,8 +105,8 @@ class Ram:
             raise IndexError(f"L'instruction LOAD attend exactement deux arguments, mais {len(arg)} ont été fournis.")
 
     def LOAD(self, arg):
-        self.CHECK_LOAD_ERROR(arg)
-        value = self.recuperer_element(arg[0])
+        self._check_load_error(arg)
+        value = self._recuperer_element(arg[0])
         pos = int(arg[1][1:])
         if arg[1][0] == "r" :
             if pos >= len(self.register):
@@ -123,54 +123,46 @@ class Ram:
         self.pos += 1
 
     def ADD(self, arg):
-        self.CHECK_ARITH_ERROR(arg)
-        pos = int(arg[2][1:])
-        if pos >= len(self.register):
-            for _ in range(len(self.register), pos+1):
-                self.register.append(0)
-        self.register[pos] = self.recuperer_element(arg[0]) + self.recuperer_element(arg[1])
+        pos = self._full_and_extract(arg)
+        self.register[pos] = self._recuperer_element(arg[0]) + self._recuperer_element(arg[1])
         self.pos += 1
 
     def SUB(self, arg):
-        self.CHECK_ARITH_ERROR(arg)
-        pos = int(arg[2][1:])
-        if pos >= len(self.register):
-            for _ in range(len(self.register), pos+1):
-                self.register.append(0)
-        self.register[pos] = self.recuperer_element(arg[0]) - self.recuperer_element(arg[1])
+        pos = self._full_and_extract(arg)
+        self.register[pos] = self._recuperer_element(arg[0]) - self._recuperer_element(arg[1])
         self.pos += 1
 
-
     def MULT(self, arg):
-        self.CHECK_ARITH_ERROR(arg)
-        pos = int(arg[2][1:])
-        if pos >= len(self.register):
-            for _ in range(len(self.register), pos+1):
-                self.register.append(0)
-        self.register[pos] = self.recuperer_element(arg[0]) * self.recuperer_element(arg[1])
+        pos = self._full_and_extract(arg)
+        self.register[pos] = self._recuperer_element(arg[0]) * self._recuperer_element(arg[1])
         self.pos += 1
 
     def DIV(self, arg):
-        self.CHECK_ARITH_ERROR(arg)
-        pos = int(arg[2][1:])
-        if pos >= len(self.register):
-            for _ in range(len(self.register), pos+1):
-                self.register.append(0)
-        self.register[pos] = self.recuperer_element(arg[0]) // self.recuperer_element(arg[1])
+        pos = self._full_and_extract(arg)
+        self.register[pos] = self._recuperer_element(arg[0]) // self._recuperer_element(arg[1])
         self.pos += 1
+
+    # TODO Rename this here and in `ADD`, `SUB`, `MULT` and `DIV`
+    def _full_and_extract(self, arg):
+        self._check_arth_error(arg)
+        result = int(arg[2][1:])
+        if result >= len(self.register):
+            for _ in range(len(self.register), result + 1):
+                self.register.append(0)
+        return result
 
     def JUMP(self, arg):
         if (type(arg) is list) and (len(arg)==1):
             self.pos += arg[0]
 
     def JE(self, arg):
-        if self.recuperer_element(arg[0]) == self.recuperer_element(arg[1]):
+        if self._recuperer_element(arg[0]) == self._recuperer_element(arg[1]):
             self.pos += arg[2]
         else:
             self.pos += 1
 
     def JL(self, arg):
-        if self.recuperer_element(arg[0]) < self.recuperer_element(arg[1]) :
+        if self._recuperer_element(arg[0]) < self._recuperer_element(arg[1]) :
             self.pos += arg[2]
         else:
             self.pos += 1
@@ -180,7 +172,13 @@ class Ram:
             print(f"Instruction en cours... {self.instructs[self.pos]}")
             self.step()
             print(self)
-            
+    
+    def get_instructs(self):
+        return self.instructs
+    
+    def get_register(self):
+        return self.register
+
 def makefile(argument):
     instructs, index = {}, 0
     with open(argument, 'r', encoding='utf-8') as f:
