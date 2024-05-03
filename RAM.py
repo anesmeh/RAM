@@ -46,6 +46,60 @@ class Ram:
                 return self.output[position]
             except (ValueError, IndexError):
                 raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("R@i"):
+            try:
+                position = int(element[3:])
+                return self.register[self.input[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("I@i"):
+            try:
+                position = int(element[3:])
+                return self.input[self.input[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("O@i"):
+            try:
+                position = int(element[3:])
+                return self.output[self.input[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("R@r"):
+            try:
+                position = int(element[3:])
+                return self.register[self.register[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("I@r"):
+            try:
+                position = int(element[3:])
+                return self.input[self.register[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("O@r"):
+            try:
+                position = int(element[3:])
+                return self.output[self.register[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("R@o"):
+            try:
+                position = int(element[3:])
+                return self.register[self.output[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("I@o"):
+            try:
+                position = int(element[3:])
+                return self.input[self.output[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
+        if type(element) == str and element.startswith("O@o"):
+            try:
+                position = int(element[3:])
+                return self.output[self.output[position]]
+            except (ValueError, IndexError):
+                raise ValueError(f"Impossible de récupérer l'élément à la position {position} de la liste.")
         else:
             raise TypeError(f"Le type de l'élément {element} n'est pas pris en charge.")
 
@@ -68,13 +122,33 @@ class Ram:
     def step(self):
         self.lecture(self.instructs[self.pos])
 
-    def LOAD(self, arg):
+    def CHECK_ARITH_ERROR(self, arg):
+        # Exemple: ADD(a) avec a un int ou registre
+        if len(arg) < 3:
+            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il manque un/des argument(s): " + self.instructs[self.pos] + ".")
+        # Exemple: ADD(a,b,c,d) avec a,b,c et d des ints ou registres
+        if len(arg) > 3:
+            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il y a trop d'arguments: " + self.instructs[self.pos] + ".")
+        # Exemple: ADD(a,b,4) avec a et b des ints ou registres
+        if type(arg[2]) == int:
+            raise TypeError(str(arg[0]) + " et " + str(arg[1]) + "sont stockées dans l'int " + str(arg[2]) + ".")
+        if type(arg[2]) == str and arg[2][0] == "i" :
+            raise TypeError ("vous ne pouvez pas stocker dans le input")
+        if type(arg[0]) == str and arg[0][0] == "o" :
+            raise TypeError ("vous ne pouvez pas recuperer de l'output")
+        if type(arg[1]) == str and arg[1][0] == "o" :
+            raise TypeError ("vous ne pouvez pas recuperer de l'output")
+        
+    def CHECK_LOAD_ERROR(self, arg):
         if type(arg[1]) == str and arg[1][0] == "i" :
             raise TypeError ("vous ne pouvez pas stocker dans le input")
         if type(arg[0]) == str and arg[0][0] == "o" :
             raise TypeError ("vous ne pouvez pas recuperer de l'output")
         if len(arg) != 2:
             raise IndexError(f"L'instruction LOAD attend exactement deux arguments, mais {len(arg)} ont été fournis.")
+
+    def LOAD(self, arg):
+        self.CHECK_LOAD_ERROR(arg)
         value = self.recuperer_element(arg[0])
         pos = int(arg[1][1:])
         if arg[1][0] == "r" :
@@ -92,47 +166,16 @@ class Ram:
         self.pos += 1
 
     def ADD(self, arg):
-        if len(arg) < 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il manque un/des argument(s): " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,c,d) avec a,b,c et d des ints ou registres
-        if len(arg) > 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il y a trop d'arguments: " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,4) avec a et b des ints ou registres
-        if type(arg[2]) == int:
-            raise TypeError(str(arg[0]) + " et " + str(arg[1]) + "sont stockées dans l'int " + str(arg[2]) + ".")
-        if type(arg[2]) == str and arg[2][0] == "i" :
-            raise TypeError ("vous ne pouvez pas stocker dans le input")
-        if type(arg[0]) == str and arg[0][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
-        if type(arg[1]) == str and arg[1][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
-        # pos : Position souhaitée/voulu
+        self.CHECK_ARITH_ERROR(arg)
         pos = int(arg[2][1:])
         if pos >= len(self.register):
             for _ in range(len(self.register), pos+1):
                 self.register.append(0)
         self.register[pos] = self.recuperer_element(arg[0]) + self.recuperer_element(arg[1])
-        print(self.instructs[self.pos])
-        print("HERE !" , self.register[pos], arg[0], arg[1])
-        print(self.recuperer_element(arg[0]))
         self.pos += 1
 
     def SUB(self, arg):
-        # Exemple: ADD(a) avec a un int ou registre
-        if len(arg) < 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il manque un/des argument(s): " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,c,d) avec a,b,c et d des ints ou registres
-        if len(arg) > 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il y a trop d'arguments: " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,4) avec a et b des ints ou registres
-        if type(arg[2]) == int:
-            raise TypeError(str(arg[0]) + " et " + str(arg[1]) + "sont stockées dans l'int " + str(arg[2]) + ".")
-        if type(arg[2]) == str and arg[2][0] == "i" :
-            raise TypeError ("vous ne pouvez pas stocker dans le input")
-        if type(arg[0]) == str and arg[0][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
-        if type(arg[1]) == str and arg[1][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
+        self.CHECK_ARITH_ERROR(arg)
         pos = int(arg[2][1:])
         if pos >= len(self.register):
             for _ in range(len(self.register), pos+1):
@@ -142,21 +185,7 @@ class Ram:
 
 
     def MULT(self, arg):
-        # Exemple: ADD(a) avec a un int ou registre
-        if len(arg) < 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il manque un/des argument(s): " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,c,d) avec a,b,c et d des ints ou registres
-        if len(arg) > 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il y a trop d'arguments: " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,4) avec a et b des ints ou registres
-        if type(arg[2]) == int:
-            raise TypeError(str(arg[0]) + " et " + str(arg[1]) + "sont stockées dans l'int " + str(arg[2]) + ".")
-        if type(arg[2]) == str and arg[2][0] == "i" :
-            raise TypeError ("vous ne pouvez pas stocker dans le input")
-        if type(arg[0]) == str and arg[0][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
-        if type(arg[1]) == str and arg[1][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
+        self.CHECK_ARITH_ERROR(arg)
         pos = int(arg[2][1:])
         if pos >= len(self.register):
             for _ in range(len(self.register), pos+1):
@@ -165,21 +194,7 @@ class Ram:
         self.pos += 1
 
     def DIV(self, arg):
-        # Exemple: ADD(a) avec a un int ou registre
-        if len(arg) < 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il manque un/des argument(s): " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,c,d) avec a,b,c et d des ints ou registres
-        if len(arg) > 3:
-            raise IndexError("La ligne " + str(self.pos+1) + " contient une instruction invalide, il y a trop d'arguments: " + self.instructs[self.pos] + ".")
-        # Exemple: ADD(a,b,4) avec a et b des ints ou registres
-        if type(arg[2]) == int:
-            raise TypeError(str(arg[0]) + " et " + str(arg[1]) + "sont stockées dans l'int " + str(arg[2]) + ".")
-        if type(arg[2]) == str and arg[2][0] == "i" :
-            raise TypeError ("vous ne pouvez pas stocker dans le input")
-        if type(arg[0]) == str and arg[0][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
-        if type(arg[1]) == str and arg[1][0] == "o" :
-            raise TypeError ("vous ne pouvez pas recuperer de l'output")
+        self.CHECK_ARITH_ERROR(arg)
         pos = int(arg[2][1:])
         if pos >= len(self.register):
             for _ in range(len(self.register), pos+1):
@@ -204,8 +219,6 @@ class Ram:
             self.pos += 1
     
     def steps(self):
-        print("*********************************")
-        print("Execution des instructions de la Ram...")
         while self.pos <= len(self.instructs.keys()):
             print("Instruction en cours... " + self.instructs[self.pos])
             self.step()
