@@ -97,7 +97,6 @@ def creer_graphe_instructions(dictionnaire_instructions):
 
   return graphe
 
-
 graphe_instructions = creer_graphe_instructions(dictionnaire_instructions)
 plt.figure()
 ax = plt.subplot()

@@ -8,13 +8,13 @@ instructions = rm.makefile(file)
 
 def saut_inconditionnel(chaine):
     """
-    Extrait la valeur de r0 de la chaîne JUMP(r0).
+    Extrait la valeur de 2 de la chaîne JUMP(2).
 
     Args:
         chaine (str): La chaîne d'entrée contenant l'instruction.
 
     Returns:
-        str: La valeur de r0, ou None si le format de la chaîne est invalide.
+        str: La valeur de 2, ou None si le format de la chaîne est invalide.
     """
     pattern = r"\(([^)]+)\)"
     match = re.search(pattern, chaine)
@@ -54,11 +54,11 @@ def create_instruction_dict(instructions_dico):
     if instruction.startswith("JE") or instruction.startswith("JL"):
         # Instructions conditionnelles
         s = saut_conditionnel(instruction)
-        true_branch = instructions_dico.get(opcode + int(s[2]), None)
-        if true_branch is None :
+        yug = instructions_dico.get(opcode + int(s[2]), None)
+        if yug is None :
            next_instructions = []
         else:
-            next_instructions = [next_instruction, true_branch]
+            next_instructions = [next_instruction, yug]
     elif instruction.startswith("JUMP"):
         s = saut_inconditionnel(instruction)
         sol = instructions_dico.get(opcode + int(s), None)
@@ -105,7 +105,7 @@ def creer_graphe_instructions(dictionnaire_instructions):
   return graphe
 
 
-def supprimer_noeuds_inatteignables(graphe, noeud_debut):
+def supprimer_noeuds_inatteignables(graphe):
   """
   Supprime les nœuds inatteignables d'un graphe en commençant par un nœud de départ.
 
@@ -123,23 +123,43 @@ def supprimer_noeuds_inatteignables(graphe, noeud_debut):
     for adjacent in graphe[noeud]:
       if adjacent not in visites:
         dfs(adjacent)
-
-  dfs(noeud_debut)
+  first_key = next(iter(graphe))
+  dfs(first_key)
 
   # Supprime les nœuds non visités du dictionnaire du graphe
   graphe_filtre = {noeud: adjacents for noeud, adjacents in graphe.items() if noeud in visites}
 
   return graphe_filtre
 
-graphe =create_instruction_dict(instructions)
-graphe_filtre = supprimer_noeuds_inatteignables(graphe, '2,6,7,3,4,0')
+graphe = create_instruction_dict(instructions)
+graphe_filtre = supprimer_noeuds_inatteignables(graphe)
 print("graphe connexe", graphe_filtre)  # {'A': ['B', 'C'], 'B': ['A', 'D'], 'C': ['A', 'E'], 'D': ['B'], 'E': ['C']}
+r = rm.Ram(instructions)
 
+def suppression_instructs(d):
+  """
+  Converti un dictionnaire avec des clés en chaînes en un dictionnaire avec des clés numériques.
+
+  Args:
+    d (dict): Le dictionnaire à convertir.
+
+  Returns:
+    dict: Le dictionnaire converti avec des clés numériques.
+  """
+  new_dict = {}
+  for i, (key, value) in enumerate(d.items()):
+    new_dict[i + 1] = key
+  return new_dict
+print("in",r.get_instructs())
+r.set_instructs(suppression_instructs(graphe_filtre))
 plt.figure()
 ax = plt.subplot()
 # Visualiser le graphe (optionnel)
-dict2 = create_instruction_dict(instructions)
+dict2 = create_instruction_dict(r.get_instructs())
 print(dict2)
 res = creer_graphe_instructions(dict2)
 nx.draw(res, with_labels=True)
+r.set_instructs(suppression_instructs(graphe_filtre))
+print("heheheh",r.get_instructs())
+print("bb",graphe)
 plt.show()
