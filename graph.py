@@ -138,7 +138,6 @@ def supprimer_noeuds_inatteignables(graphe):
 
 graphe = create_instruction_dict(instructions)
 graphe_filtre = supprimer_noeuds_inatteignables(graphe)
-print("graphe connexe", graphe_filtre)  # {'A': ['B', 'C'], 'B': ['A', 'D'], 'C': ['A', 'E'], 'D': ['B'], 'E': ['C']}
 r = rm.Ram(instructions)
 
 def suppression_instructs(d):
@@ -155,16 +154,14 @@ def suppression_instructs(d):
   for i, (key, value) in enumerate(d.items()):
     new_dict[i + 1] = key
   return new_dict
-print("in",r.get_instructs())
+
 r.set_instructs(suppression_instructs(graphe_filtre))
 plt.figure()
 ax = plt.subplot()
+
 # Visualiser le graphe (optionnel)
 dict2 = create_instruction_dict(r.get_instructs())
-print(dict2)
 res = creer_graphe_instructions(dict2)
 nx.draw(res, with_labels=True)
 r.set_instructs(suppression_instructs(graphe_filtre))
-print("heheheh",r.get_instructs())
-print("bb",graphe)
 plt.show()
