@@ -1,6 +1,0 @@
-2,6,7,3,4,0
-LOAD(i0, r0)
-JUMP(5)
-LOAD(r1, o0)
-LOAD(r1,r1)
-LOAD(i2,r2)

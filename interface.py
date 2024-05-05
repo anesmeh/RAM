@@ -9,9 +9,8 @@ def readfile(argument):
     global global_ram
     status_text.config(text="")
     try:
-        instructs = rm.makefile(f"{argument}.txt")
+        instructs = rm.makefile(f"prog\{argument}.txt")
         global_ram = rm.Ram(instructs)
-        print(global_ram)
         affiche_instruction(global_ram)
         load_button.config(text="Chargé", state="disabled")
     except FileNotFoundError:
@@ -45,7 +44,6 @@ def execute_instruction():
     global global_ram
     while global_ram.pos <= len(global_ram.instructs.keys()):
         global_ram.step()
-        print(global_ram)
     execute_button.config(text="Terminé", state="disabled")
     step_by_step_button.config(text="Terminé", state="disabled")
     affiche_registres(global_ram)
@@ -55,11 +53,9 @@ def execute_step_by_step():
     if global_ram.pos <= len(global_ram.instructs.keys()):
         step_by_step_button.config(text="Continuer")
         global_ram.step()
-        print(global_ram)
     else:
         step_by_step_button.config(text="Terminé", state="disabled")
         execute_button.config(text="Terminé", state="disabled")
-        print("Nous ne pouvons pas executer plus de pas.")
     affiche_registres(global_ram)
 
 def reset_ram():

@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import re
 import RAM as rm
 import argparse
-file = "file.txt"
-instructions = rm.makefile(file)
 
 def saut_inconditionnel(chaine):
     """
@@ -136,11 +134,6 @@ def supprimer_noeuds_inatteignables(graphe):
 
   return graphe_filtre
 
-graphe = create_instruction_dict(instructions)
-graphe_filtre = supprimer_noeuds_inatteignables(graphe)
-print("graphe connexe", graphe_filtre)  # {'A': ['B', 'C'], 'B': ['A', 'D'], 'C': ['A', 'E'], 'D': ['B'], 'E': ['C']}
-r = rm.Ram(instructions)
-
 def suppression_instructs(d):
   """
   Converti un dictionnaire avec des clés en chaînes en un dictionnaire avec des clés numériques.
@@ -155,16 +148,22 @@ def suppression_instructs(d):
   for i, (key, value) in enumerate(d.items()):
     new_dict[i + 1] = key
   return new_dict
-print("in",r.get_instructs())
+
+parser = argparse.ArgumentParser(description="Script running a RAM")
+parser.add_argument("File_RAM", help="An argument for a file that describes a RAM")
+args = parser.parse_args()
+instructions = rm.makefile(args.File_RAM)
+graphe = create_instruction_dict(instructions)
+graphe_filtre = supprimer_noeuds_inatteignables(graphe)
+# print("graphe connexe", graphe_filtre) donne {'A': ['B', 'C'], 'B': ['A', 'D'], 'C': ['A', 'E'], 'D': ['B'], 'E': ['C']}
+r = rm.Ram(instructions)
 r.set_instructs(suppression_instructs(graphe_filtre))
 plt.figure()
 ax = plt.subplot()
-# Visualiser le graphe (optionnel)
+
+# Visualiser le graphe
 dict2 = create_instruction_dict(r.get_instructs())
-print(dict2)
 res = creer_graphe_instructions(dict2)
 nx.draw(res, with_labels=True)
 r.set_instructs(suppression_instructs(graphe_filtre))
-print("heheheh",r.get_instructs())
-print("bb",graphe)
 plt.show()

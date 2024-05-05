@@ -1,0 +1,6 @@
+311
+LOAD(i1,r0)
+JE(r0,0,3)
+DIV(r0,10,r0)
+JUMP(2)
+LOAD(10,r0)
